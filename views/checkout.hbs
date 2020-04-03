@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>Payment</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css"
+    integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
+  <link href="https://fonts.googleapis.com/css?family=Montserrat" rel="stylesheet">
+  <script src="https://code.jquery.com/jquery-1.11.0.min.js"></script>
+  <script src="https://secure.mlstatic.com/sdk/javascript/v1/mercadopago.js"></script>
+  <link rel="stylesheet" href="../css/checkout.css">
+</head>
+
+<body>
+  <main class="page payment-page">
+    <section class="payment-form dark">
+      <div class="container">
+        <div class="block-heading">
+          <h2>Payment</h2>
+          <p>This is an example of Mercado Pago integration API + Wallet Button</p>
+        </div>
+        <form action="/pagar" method="post" id="pay" name="pay" class="form-payment">
+          <div class="products">
+            <h3 class="title">Itens</h3>
+            <div class="item">
+              <span class="price">$200</span>
+              <p class="item-name">Smartphone</p>
+            </div>
+            <div class="total">Total<span class="price">$200</span></div>
+          </div>
+          <div class="card-details">
+            <h3 class="title">Credit Card Details</h3>
+            <div class="row">
+              <div class="form-group col-sm-7">
+                <label ffor="cardholderName">Card Holder</label>
+                <input id="cardholderName" data-checkout="cardholderName" type="text" class="form-control"
+                  placeholder="Card Holder" aria-label="Card Holder" aria-describedby="basic-addon1">
+                <input data-checkout="docType" type="hidden" value="CPF" />
+                <input data-checkout="siteId" type="hidden" value="MLB" />
+                <input type="hidden" id="docNumber" data-checkout="docNumber" value="19119119100" />
+              </div>
+              <div class="form-group col-sm-5">
+                <label for="">Expiration Date</label>
+                <div class="input-group expiration-date">
+                  <input type="text" class="form-control" placeholder="MM" id="cardExpirationMonth"
+                    data-checkout="cardExpirationMonth">
+                  <span class="date-separator">/</span>
+                  <input type="text" class="form-control" placeholder="YY" id="cardExpirationYear"
+                    data-checkout="cardExpirationYear">
+                </div>
+              </div>
+              <div class="form-group col-sm-8">
+                <label for="cardNumber">Card Number</label>
+                <input type="text" class="form-control" id="cardNumber" data-checkout="cardNumber"
+                  placeholder="4509 9535 6623 3704" value="4509 9535 6623 3704">
+              </div>
+
+
+              <div class="form-group col-sm-4">
+                <label for="securityCode">CVV</label>
+                <input id="securityCode" data-checkout="securityCode" type="text" class="form-control"
+                  placeholder="CVV">
+              </div>
+
+              <div class="form-group col-sm-12">
+                <label for="installments">Installments</label>
+                <select type="text" id="installments" name="installmentsOption" class="form-control"
+                  aria-label="installments" aria-describedby="basic-addon1"></select>
+              </div>
+
+              <div class="form-group col-sm-12">
+                <input type="hidden" name="amount" id="amount" value="200" />
+                <button type="submit" class="btn btn-primary btn-block">Proceed</button>
+                <div class="text-center">Or</div>
+        </form>
+        <form action="/processar_pagamento" method="POST">
+          <script src="https://www.mercadopago.com.br/integrations/v1/web-payment-checkout.js"
+            data-preference-id="{{preference_id}}" data-button-label="Pagar com Mercado Pago">
+            </script>
+        </form>
+    </section>
+            </div>
+          </div>
+        </div>
+    </div>
+  </main>
+</body>
+</html>
+
+<script type="text/javascript">
+  Mercadopago.setPublishableKey("TEST-99c6d09d-7dca-4c45-bffb-b9d69908b8be");
+  function addEvent(el, eventName, handler) {
+    if (el.addEventListener) {
+      el.addEventListener(eventName, handler);
+    } else {
+      el.attachEvent('on' + eventName, function () {
+        handler.call(el);
+      });
+    }
+  };
+  function getBin() {
+    var ccNumber = document.querySelector('input[data-checkout="cardNumber"]');
+    return ccNumber.value.replace(/[ .-]/g, '').slice(0, 6);
+  };
+
+  function guessingPaymentMethod(event) {
+    var bin = getBin();
+
+    if (event.type == "keyup") {
+      if (bin.length >= 6) {
+        Mercadopago.getPaymentMethod({
+          "bin": bin
+        }, setPaymentMethodInfo);
+      }
+    } else {
+      setTimeout(function () {
+        if (bin.length >= 6) {
+          Mercadopago.getPaymentMethod({
+            "bin": bin
+          }, setPaymentMethodInfo);
+        }
+      }, 100);
+    }
+  };
+
+  function setPaymentMethodInfo(status, response) {
+    if (status == 200) {
+      var form = document.querySelector('#pay');
+
+      if (document.querySelector("input[name=paymentMethodId]") == null) {
+        var paymentMethod = document.createElement('input');
+        paymentMethod.setAttribute('name', "paymentMethodId");
+        paymentMethod.setAttribute('type', "hidden");
+        paymentMethod.setAttribute('value', response[0].id);
+        form.appendChild(paymentMethod);
+      } else {
+        document.querySelector("input[name=paymentMethodId]").value = response[0].id;
+      }
+
+      var img = "<img src='" + response[0].thumbnail + "' align='center' style='margin-left:10px;' ' >";
+      $("#bandeira").empty();
+      $("#bandeira").append(img);
+      amount = document.querySelector('#amount').value;
+      Mercadopago.getInstallments({
+        "bin": getBin(),
+        "amount": amount
+      }, setInstallmentInfo);
+
+    }
+  };
+
+  addEvent(document.querySelector('input[data-checkout="cardNumber"]'), 'keyup', guessingPaymentMethod);
+  addEvent(document.querySelector('input[data-checkout="cardNumber"]'), 'change', guessingPaymentMethod);
+
+  doSubmit = false;
+  addEvent(document.querySelector('#pay'), 'submit', doPay);
+
+  function doPay(event) {
+    event.preventDefault();
+    if (!doSubmit) {
+      var $form = document.querySelector('#pay');
+
+      Mercadopago.createToken($form, sdkResponseHandler);
+
+      return false;
+    }
+  };
+
+  function sdkResponseHandler(status, response) {
+    if (status != 200 && status != 201) {
+      alert("verify filled data");
+    } else {
+
+      var form = document.querySelector('#pay');
+      var card = document.createElement('input');
+      card.setAttribute('name', "token");
+      card.setAttribute('type', "hidden");
+      card.setAttribute('value', response.id);
+      form.appendChild(card);
+      doSubmit = true;
+      form.submit();
+    }
+  };
+  function setInstallmentInfo(status, response) {
+    var selectorInstallments = document.querySelector("#installments"),
+      fragment = document.createDocumentFragment();
+    selectorInstallments.options.length = 0;
+    if (response.length > 0) {
+      var option = new Option("Choose...", '-1'),
+        payerCosts = response[0].payer_costs;
+      fragment.appendChild(option);
+      for (var i = 0; i < payerCosts.length; i++) {
+        option = new Option(payerCosts[i].recommended_message || payerCosts[i].installments, payerCosts[i].installments);
+        fragment.appendChild(option);
+      }
+      selectorInstallments.appendChild(fragment);
+      selectorInstallments.removeAttribute('disabled');
+    }
+  };
+</script>
