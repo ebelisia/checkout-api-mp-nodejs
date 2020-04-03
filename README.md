@@ -1,28 +1,54 @@
-# checkout-mercadopago-wallet-button
-This repo have a Mercado Pago Integration API + Wallet Button - Node.js
+# Checkout API + Checkout Mercado Pago Node.js
 
-### How make instalation:
+This is an example of Mercado Pago integration API +  Checkout Mercado Pago - Node.js
 
-  Create a folder where the repository will be downloaded.
+## Getting Started
 
-  On your terminal, go to the folder you created to download the repository.
+These instructions will get you a copy of the project up and running on your local machine for development and testing purposes.
 
-  In the folder, execute the command:
+### Prerequisites
 
-  #### $ git clone https://github.com/ebelisia/checkout-mercadopago-wallet-button
+```
+* Node.js 
+* Server Localhost
+```
 
-  When the download is complete, access the folder with the repository using the command:
+### Installing
 
-  #### $ cd checkout-teste-mp
+Clone the project:
 
-  To install npm, use the command:
+```
+$ git clone https://github.com/ebelisia/checkout-api-wallet-button-nodejs
+```
 
-  #### $ npm install
-  
-  And then:
-  
-  #### $ npm start
+### Configurations
 
-Go to your browser and access localhost:3000.
+Step 1. 
 
-Done!
+Set your access_token in a .env file. Example:
+
+```
+ACCESS_TOKEN=TEST-2318480319735397-071217-715101e600b5c3f0043c10bd714cb71d-123456789
+```
+Step 2.
+
+Configure your public key in checkout.hbs. Example:
+
+```
+Mercadopago.setPublishableKey("TEST-99c6d09d-7dca-4c45-bffb-b9d699012345");
+```
+
+### Running application
+
+Inside the project, type on terminal:
+
+```
+$ npm install 
+```
+And then:
+
+```
+$ npm start 
+```
+
+Access localhost:3000 and done!
